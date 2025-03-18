@@ -27,7 +27,7 @@
 PFont font;
 final float MOUSE_OVER_LINE_DISTANCE_THRESHOLD = 3.0;
 final int STROKE_WEIGHT_NORMAL = 8, STROKE_WEIGHT_POS = 6, STROKE_WEIGHT_NEG = 5, STROKE_WEIGHT_ZERO = 3, STROKE_WEIGHT_HOVER = 12;
-final int SET_BALANCED = 0, SET_EXAMPLE = 1, SET_RANDOM = 2, TOGGLE_MODE = 3;  // workaround for lack of pseudo-anonymous functions in .js
+final int SET_BALANCED = 0, SET_EXAMPLE = 1, SET_RANDOM = 2, TOGGLE_MODE = 3, INPUT_MAG = 4, INPUT_PHASE = 5;  // workaround for lack of pseudo-anonymous functions in .js
 final float X_START = 180;
 final float Y_START = 300;
 final float X_MAX = 1200;
@@ -66,7 +66,7 @@ float scalePhasors = 100.0;
 int hoveredPhase = -1;
 
 RectButton buttonBalanced, buttonExample, buttonRandom, buttonMode;
-
+InputBox textInputMag, textInputPhase;
 void initVariables() {
   for (int i = 0; i < 3; i++) {
     signal[i] = new PVector(0.0, 0.0);
@@ -81,6 +81,8 @@ void initGUI() {
   buttonBalanced = new RectButton("balanced", 180, 10, 150, 30, SET_BALANCED);
   buttonExample = new RectButton("example", 350, 10, 150, 30, SET_EXAMPLE);
   buttonRandom = new RectButton("random", 520, 10, 150, 30, SET_RANDOM);
+  textInputMag = new InputBox("PU Value", 0, 60, 150, 30, INPUT_MAG)
+  textInputPhase = new InputBox("Phase Value", 180, 60, 150, 30, INPUT_PHASE)
 }
 
 PVector rotateAlpha(PVector pv) {
@@ -433,6 +435,8 @@ void updateButtons() {
   buttonBalanced.display();
   buttonExample.display();
   buttonRandom.display();
+  textInputMag.display();
+  textInputPhase.display();
 }
 
 String cursorLock = "";
@@ -521,3 +525,84 @@ class RectButton {
   }
 }
 
+class FloatInputHandler {
+  float value;  // Stores the floating input
+  float minValue, maxValue; // Range for visualization
+  PVector position; // Position of the display
+  int setNum;
+  String variable;
+  // Constructor
+  FloatInputHandler(String variable, float minValue, float maxValue, float x, float y, int setnum) {
+    this.variable = variable;
+    this.minValue = minValue;
+    this.maxValue = maxValue;
+    this.value = minValue; // Initialize with min value
+    this.position = new PVector(x, y);
+    this.setNum = setnum;
+  }
+
+  // Updates the stored value
+  void updateValue(float newValue) {
+    this.value = constrain(newValue, minValue, maxValue); // Ensure it's within bounds
+  }
+
+  String getVariable() {
+    return this.variable;
+  }
+
+  // Displays the value as a bar and text
+  void display() {
+    float barWidth = map(this.value, this.minValue, this.maxValue, 0, 200); // Scale to bar width
+
+    fill(0, 150, 255);
+    rect(position.x, position.y, barWidth, 20);
+
+    fill(255);
+    textSize(16);
+    text(this.getVariable() + ":" + nf(this.value, 1, 2), position.x, position.y - 5);
+  }
+}
+
+class InputBox {
+  float x, y, w, h;
+  String sometext = "";
+  boolean selected = false;
+  int setNum;
+  InputBox(String startText, float x, float y, float w, float h, int setNum) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.setNum = setNum;
+  }
+
+  void display() {
+    stroke(selected ? color(0, 150, 255) : 255);
+    fill(30);
+    rect(x, y, w, h, 5);
+
+    fill(255);
+    textSize(16);
+    textAlign(LEFT);
+    text(sometext, x + 10, y + h - 10);
+  }
+
+  void keyPressed() {
+    if (selected) {
+      sometext += str(key);
+    }
+  }
+
+  boolean isClicked(float mx, float my) {
+    return mx > x && mx < x + w && my > y && my < y + h;
+  }
+}
+void mousePressed() {
+  textInputMag.selected = textInputMag.isClicked(mouseX, mouseY);
+  textInputPhase.selected = textInputPhase.isClicked(mouseX, mouseY);
+}
+
+void keyPressed() {
+  textInputMag.keyPressed();
+  textInputPhase.keyPressed();
+}
