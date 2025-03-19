@@ -83,14 +83,14 @@ void initGUI() {
   buttonExample = new RectButton("example", 350, 10, 150, 30, SET_EXAMPLE);
   buttonRandom = new RectButton("random", 520, 10, 150, 30, SET_RANDOM);
   // Phase A
-  redInputMag = new InputBox("Mag A PU Value", 10, 60, 75, 30, PHASE_A_MAG, 255)
-  redInputPhase = new InputBox("Phase A Value", 90, 60, 75, 30, PHASE_A_PHASE, 255)
+  redInputMag = new InputBox("Mag A PU Value", 10, 60, 75, 30, PHASE_A_MAG, color(255, 0, 0))
+  redInputPhase = new InputBox("Phase A Value", 90, 60, 75, 30, PHASE_A_PHASE, color(255, 0, 0))
   // Phase B
-  yellowInputMag = new InputBox("Mag B PU Value", 180, 60, 75, 30, PHASE_B_MAG, 125)
-  yellowInputPhase = new InputBox("Phase B Value", 265, 60, 75, 30, PHASE_B_PHASE, 125)
+  yellowInputMag = new InputBox("Mag B PU Value", 180, 60, 75, 30, PHASE_B_MAG, color(255, 255, 0))
+  yellowInputPhase = new InputBox("Phase B Value", 265, 60, 75, 30, PHASE_B_PHASE, color(255, 255, 0))
   // Phase C
-  blueInputMag = new InputBox("Mag C PU Value", 350, 60, 75, 30, PHASE_C_MAG, 50)
-  blueInputPhase = new InputBox("Phase C Value", 435, 60, 75, 30, PHASE_C_PHASE, 50)
+  blueInputMag = new InputBox("Mag C PU Value", 350, 60, 75, 30, PHASE_C_MAG, color(0, 0, 255))
+  blueInputPhase = new InputBox("Phase C Value", 435, 60, 75, 30, PHASE_C_PHASE, color(0, 0, 255))
   // Submt Button
   buttonSubmit = new RectButton("set", 520, 60, 150, 30, SET_INDEPENDENT_VALUE);
 
@@ -561,7 +561,7 @@ class InputBox {
     this.w = w;
     this.h = h;
     this.setNum = setNum;
-    this.boxColor = hex(boxColor);
+    this.boxColor = boxColor;
   }
 
   String getText() {
