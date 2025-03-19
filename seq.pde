@@ -27,7 +27,8 @@
 PFont font;
 final float MOUSE_OVER_LINE_DISTANCE_THRESHOLD = 3.0;
 final int STROKE_WEIGHT_NORMAL = 8, STROKE_WEIGHT_POS = 6, STROKE_WEIGHT_NEG = 5, STROKE_WEIGHT_ZERO = 3, STROKE_WEIGHT_HOVER = 12;
-final int SET_BALANCED = 0, SET_EXAMPLE = 1, SET_RANDOM = 2, TOGGLE_MODE = 3, INPUT_MAG = 4, INPUT_PHASE = 5;  // workaround for lack of pseudo-anonymous functions in .js
+final int SET_BALANCED = 0, SET_EXAMPLE = 1, SET_RANDOM = 2, TOGGLE_MODE = 3, SET_INDEPENDENT_VALUE = 4; // workaround for lack of pseudo-anonymous functions in .js
+final int PHASE_A_MAG = 5, PHASE_A_PHASE = 6, PHASE_B_MAG = 7, PHASE_B_PHASE = 8, PHASE_C_MAG = 9, PHASE_C_PHASE = 10;  
 final float X_START = 180;
 final float Y_START = 300;
 final float X_MAX = 1200;
@@ -35,7 +36,7 @@ final float Y_MAX = 600;
 final int LEGEND_BASE_X = 20;
 final int LEGEND_BASE_Y = 60;
 final int VIEW_TOGETHER = 0, VIEW_SEPERATE = 1;
-final float VISIBLE_THRESHOLD = 0.3;
+final float VISIBLE_THRESHOLD = 0.1;
 final color redPhaseA = color(180, 33, 38);      // RGB values
 final color yellowPhaseB = color(222, 215, 20);
 final color bluePhaseC = color(36, 78, 198);
@@ -65,8 +66,8 @@ float phaseC = 0.0;
 float scalePhasors = 100.0;
 int hoveredPhase = -1;
 
-RectButton buttonBalanced, buttonExample, buttonRandom, buttonMode;
-InputBox textInputMag, textInputPhase;
+RectButton buttonBalanced, buttonExample, buttonRandom, buttonMode, buttonSubmit;
+InputBox textInputMag, textInputPhase, redInputMag, redInputPhase, yellowInputMag, yellowInputPhase, blueInputMag, blueInputPhase;
 void initVariables() {
   for (int i = 0; i < 3; i++) {
     signal[i] = new PVector(0.0, 0.0);
@@ -81,8 +82,18 @@ void initGUI() {
   buttonBalanced = new RectButton("balanced", 180, 10, 150, 30, SET_BALANCED);
   buttonExample = new RectButton("example", 350, 10, 150, 30, SET_EXAMPLE);
   buttonRandom = new RectButton("random", 520, 10, 150, 30, SET_RANDOM);
-  textInputMag = new InputBox("PU Value", 0, 60, 150, 30, INPUT_MAG)
-  textInputPhase = new InputBox("Phase Value", 180, 60, 150, 30, INPUT_PHASE)
+  // Phase A
+  redInputMag = new InputBox("Mag A PU Value", 10, 60, 75, 30, PHASE_A_MAG, 255)
+  redInputPhase = new InputBox("Phase A Value", 90, 60, 75, 30, PHASE_A_PHASE, 255)
+  // Phase B
+  yellowInputMag = new InputBox("Mag B PU Value", 180, 60, 75, 30, PHASE_B_MAG, 125)
+  yellowInputPhase = new InputBox("Phase B Value", 265, 60, 75, 30, PHASE_B_PHASE, 125)
+  // Phase C
+  blueInputMag = new InputBox("Mag C PU Value", 350, 60, 75, 30, PHASE_C_MAG, 50)
+  blueInputPhase = new InputBox("Phase C Value", 435, 60, 75, 30, PHASE_C_PHASE, 50)
+  // Submt Button
+  buttonSubmit = new RectButton("set", 520, 60, 150, 30, SET_INDEPENDENT_VALUE);
+
 }
 
 PVector rotateAlpha(PVector pv) {
@@ -425,6 +436,14 @@ void setAction(int setNum) {
           buttonMode.string = "show superimposed";
         }
         break;
+      case SET_INDEPENDENT_VALUE:
+        magA = float(redInputMag.getText());
+        magB = float(yellowInputMag.getText());
+        magC = float(blueInputMag.getText());
+        phaseA = float(redInputPhase.getText());
+        phaseB = float(yellowInputPhase.getText());
+        phaseC = float(blueInputPhase.getText());
+        break;
       default:
     }
   }
@@ -435,8 +454,13 @@ void updateButtons() {
   buttonBalanced.display();
   buttonExample.display();
   buttonRandom.display();
-  textInputMag.display();
-  textInputPhase.display();
+  redInputMag.display();
+  redInputPhase.display();
+  yellowInputMag.display();
+  yellowInputPhase.display();
+  blueInputMag.display();
+  blueInputPhase.display();
+  buttonSubmit.display();
 }
 
 String cursorLock = "";
@@ -525,62 +549,31 @@ class RectButton {
   }
 }
 
-class FloatInputHandler {
-  float value;  // Stores the floating input
-  float minValue, maxValue; // Range for visualization
-  PVector position; // Position of the display
-  int setNum;
-  String variable;
-  // Constructor
-  FloatInputHandler(String variable, float minValue, float maxValue, float x, float y, int setnum) {
-    this.variable = variable;
-    this.minValue = minValue;
-    this.maxValue = maxValue;
-    this.value = minValue; // Initialize with min value
-    this.position = new PVector(x, y);
-    this.setNum = setnum;
-  }
-
-  // Updates the stored value
-  void updateValue(float newValue) {
-    this.value = constrain(newValue, minValue, maxValue); // Ensure it's within bounds
-  }
-
-  String getVariable() {
-    return this.variable;
-  }
-
-  // Displays the value as a bar and text
-  void display() {
-    float barWidth = map(this.value, this.minValue, this.maxValue, 0, 200); // Scale to bar width
-
-    fill(0, 150, 255);
-    rect(position.x, position.y, barWidth, 20);
-
-    fill(255);
-    textSize(16);
-    text(this.getVariable() + ":" + nf(this.value, 1, 2), position.x, position.y - 5);
-  }
-}
-
 class InputBox {
   float x, y, w, h;
   String sometext = "";
   boolean selected = false;
   int setNum;
-  InputBox(String startText, float x, float y, float w, float h, int setNum) {
+  int boxColor;
+  InputBox(String startText, float x, float y, float w, float h, int setNum, int boxColor) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
     this.setNum = setNum;
+    this.boxColor = hex(boxColor);
+  }
+
+  String getText() {
+    return sometext;
   }
 
   void display() {
-    stroke(selected ? color(0, 150, 255) : 255);
-    fill(30);
+    stroke(selected ? color(0, 0, 255) : 0);
+    // Box color
+    fill(this.boxColor);
     rect(x, y, w, h, 5);
-
+    // Text Color
     fill(255);
     textSize(16);
     textAlign(LEFT);
@@ -589,7 +582,17 @@ class InputBox {
 
   void keyPressed() {
     if (selected) {
-      sometext += str(key);
+      //println(key == CODED, key, BACKSPACE, key == BACKSPACE);
+      //println("Key pressed: " + key + ", KeyCode: " + keyCode); // Debug message
+      if (key == 127) { // Backspace key
+        println("Backspace detected"); // Debug message
+        if (sometext.length() > 0) {
+          sometext = sometext.substring(0, sometext.length() - 1);
+        }
+      }
+      else if (key == '.' || key == '-' || (key >= '0' && key <= '9')){
+        sometext += str(key);
+      }
     }
   }
 
@@ -598,11 +601,20 @@ class InputBox {
   }
 }
 void mousePressed() {
-  textInputMag.selected = textInputMag.isClicked(mouseX, mouseY);
-  textInputPhase.selected = textInputPhase.isClicked(mouseX, mouseY);
+  redInputMag.selected   = redInputMag.isClicked(mouseX, mouseY);
+  redInputPhase.selected = redInputPhase.isClicked(mouseX, mouseY);
+  yellowInputMag.selected   = yellowInputMag.isClicked(mouseX, mouseY);
+  yellowInputPhase.selected = yellowInputPhase.isClicked(mouseX, mouseY);
+  blueInputMag.selected   = blueInputMag.isClicked(mouseX, mouseY);
+  blueInputPhase.selected = blueInputPhase.isClicked(mouseX, mouseY);
 }
 
-void keyPressed() {
-  textInputMag.keyPressed();
-  textInputPhase.keyPressed();
+void keyReleased() {
+  //println(key == CODED, key, BACKSPACE, key == BACKSPACE);
+  redInputMag.keyPressed();
+  redInputPhase.keyPressed();
+  yellowInputMag.keyPressed();
+  yellowInputPhase.keyPressed();
+  blueInputMag.keyPressed();
+  blueInputPhase.keyPressed();
 }
