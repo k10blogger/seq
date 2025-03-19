@@ -437,9 +437,9 @@ void setAction(int setNum) {
         }
         break;
       case SET_INDEPENDENT_VALUE:
-        magA = float(redInputMag.getText());
-        magB = float(yellowInputMag.getText());
-        magC = float(blueInputMag.getText());
+        magA = abs(float(redInputMag.getText()));
+        magB = abs(float(yellowInputMag.getText()));
+        magC = abs(float(blueInputMag.getText()));
         phaseA = float(redInputPhase.getText());
         phaseB = float(yellowInputPhase.getText());
         phaseC = float(blueInputPhase.getText());
